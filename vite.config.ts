@@ -5,7 +5,6 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react()],
-  base: "/LCBAD/", // Replace with your repo name
   build: {
     outDir: "dist",
     assetsDir: "assets",
