@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AssistantBot from "./components/AssistantBot";
 import Assistant from "./pages/Assistant";
 import Index from "./pages/Index";
 import Characters from "./pages/Characters";
@@ -76,6 +77,7 @@ const App = () => (
             />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <AssistantBot />
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
