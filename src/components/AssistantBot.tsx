@@ -56,35 +56,38 @@ const AssistantBot: React.FC<AssistantBotProps> = ({ className }) => {
   }
 
   // Navigation commands
-  if (/go back|previous|last discussed/i.test(inputValue) && contextHistory.length > 1) {
-    const prev = contextHistory[contextHistory.length - 2];
-    return `Back to previous: ${prev.entity.name || prev.entity.title}`;
-  }
-  if (/summarize this arc/i.test(inputValue) && contextHistory.length) {
-    const arc = contextHistory.slice().reverse().find(c => c.type === 'arc');
-    if (arc) {
-      return `**${arc.entity.name}**: ${arc.entity.theme}. Main character: ${arc.entity.mainCharacter}. Stories: ${arc.entity.stories.join(', ')}`;
+  const handleNavigationCommands = () => {
+    if (/go back|previous|last discussed/i.test(inputValue) && contextHistory.length > 1) {
+      const prev = contextHistory[contextHistory.length - 2];
+      return `Back to previous: ${prev.entity.name || prev.entity.title}`;
     }
-  }
-  if (/list all battles|fights|conflicts/i.test(inputValue) && contextHistory.length) {
-    const story = contextHistory.slice().reverse().find(c => c.type === 'story');
-    if (story) {
+    if (/summarize this arc/i.test(inputValue) && contextHistory.length) {
+      const arc = contextHistory.slice().reverse().find(c => c.type === 'arc');
+      if (arc) {
+        return `**${arc.entity.name}**: ${arc.entity.theme}. Main character: ${arc.entity.mainCharacter}. Stories: ${arc.entity.stories.join(', ')}`;
+      }
+    }
+    if (/list all battles|fights|conflicts/i.test(inputValue) && contextHistory.length) {
+      const story = contextHistory.slice().reverse().find(c => c.type === 'story');
+      if (story) {
+        // For demo, just return a placeholder
+        return `Epic battles in **${story.entity.title}**: [Demo: Add battle extraction logic here]`;
+      }
+    }
+
+    // Relationship map
+    if (/how.*related|connection between|allies of|enemies of/i.test(inputValue)) {
       // For demo, just return a placeholder
-      return `Epic battles in **${story.entity.title}**: [Demo: Add battle extraction logic here]`;
+      return "Relationship web: [Demo: Add relationship extraction logic here]";
     }
-  }
 
-  // Relationship map
-  if (/how.*related|connection between|allies of|enemies of/i.test(inputValue)) {
-    // For demo, just return a placeholder
-    return "Relationship web: [Demo: Add relationship extraction logic here]";
-  }
-
-  // Power evolution and theme significance
-  if (/how.*power.*evolve|how.*role.*change|theme.*significance/i.test(inputValue)) {
-    // For demo, just return a placeholder
-    return "Power evolution and theme significance: [Demo: Add evolution and significance logic here]";
-  }
+    // Power evolution and theme significance
+    if (/how.*power.*evolve|how.*role.*change|theme.*significance/i.test(inputValue)) {
+      // For demo, just return a placeholder
+      return "Power evolution and theme significance: [Demo: Add evolution and significance logic here]";
+    }
+    return null;
+  };
 
   // Engaging, comic-like tone
   function comicResponse(text: string) {
@@ -256,6 +259,14 @@ const AssistantBot: React.FC<AssistantBotProps> = ({ className }) => {
     const lowerQuery = query.toLowerCase();
     let processedQuery = lowerQuery;
     const keywords = processedQuery.split(/\W+/).filter(w => w.length > 2);
+
+    // Check navigation commands first
+    const navigationResult = handleNavigationCommands();
+    if (navigationResult) return navigationResult;
+
+    // Check multi-entity queries
+    const multiEntityResult = handleMultiEntityQueries();
+    if (multiEntityResult) return multiEntityResult;
 
     // Special case: Who are you
     if (/who are you|what are you|your name|who is assistant/i.test(processedQuery)) {
@@ -683,40 +694,43 @@ const AssistantBot: React.FC<AssistantBotProps> = ({ className }) => {
   }
 
   // --- Multi-Entity Awareness ---
-  if (/compare|difference|similarity|both|vs|versus|between/i.test(inputValue)) {
-    // Try to extract two character names
-    const found = characters.filter(c => inputValue.includes(c.name.toLowerCase()));
-    if (found.length === 2) {
-      return comicResponse(`Comparing **${found[0].name}** and **${found[1].name}**:\n\n- ${found[0].name}: ${summarize(found[0].description)}\n- ${found[1].name}: ${summarize(found[1].description)}\n\nKey differences: ${found[0].name} is a ${found[0].role}, ${found[1].name} is a ${found[1].role}.\n\nWant to know about their powers or battles?`);
-    }
-  }
-
-  // --- Relationship & Timeline Reasoning ---
-  if (/relationship|related|connection|how.*connected|how.*related|timeline|before|after|next|previous/i.test(inputValue)) {
-    // Relationship between two characters
-    const chars = characters.filter(c => inputValue.includes(c.name.toLowerCase()));
-    if (chars.length === 2) {
-      const sharedStory = stories.find(s => s.id === chars[0].relatedStory && s.id === chars[1].relatedStory);
-      if (sharedStory) {
-        return comicResponse(`**${chars[0].name}** and **${chars[1].name}** both appear in **${sharedStory.title}**.\n\n${chars[0].name}: ${summarize(chars[0].description)}\n${chars[1].name}: ${summarize(chars[1].description)}\n\nTheir relationship: ${chars[0].name} is a ${chars[0].role}, ${chars[1].name} is a ${chars[1].role}.`);
+  const handleMultiEntityQueries = () => {
+    if (/compare|difference|similarity|both|vs|versus|between/i.test(inputValue)) {
+      // Try to extract two character names
+      const found = characters.filter(c => inputValue.includes(c.name.toLowerCase()));
+      if (found.length === 2) {
+        return comicResponse(`Comparing **${found[0].name}** and **${found[1].name}**:\n\n- ${found[0].name}: ${summarize(found[0].description)}\n- ${found[1].name}: ${summarize(found[1].description)}\n\nKey differences: ${found[0].name} is a ${found[0].role}, ${found[1].name} is a ${found[1].role}.\n\nWant to know about their powers or battles?`);
       }
     }
-    // Timeline: what happened before/after a story
-    for (const s of stories) {
-      if (inputValue.includes(s.title.toLowerCase())) {
-        const arc = knowledgeBase.storyArcs.find(a => a.stories.includes(s.id));
-        if (arc) {
-          const idx = arc.stories.indexOf(s.id);
-          let before = idx > 0 ? stories.find(st => st.id === arc.stories[idx - 1]) : null;
-          let after = idx < arc.stories.length - 1 ? stories.find(st => st.id === arc.stories[idx + 1]) : null;
-          let msg = `**${s.title}** is part of the ${arc.name}.`;
-          if (before) msg += `\n\nBefore: **${before.title}** — ${summarize(before.summary)}`;
-          if (after) msg += `\n\nAfter: **${after.title}** — ${summarize(after.summary)}`;
-          return comicResponse(msg);
+
+    // --- Relationship & Timeline Reasoning ---
+    if (/relationship|related|connection|how.*connected|how.*related|timeline|before|after|next|previous/i.test(inputValue)) {
+      // Relationship between two characters
+      const chars = characters.filter(c => inputValue.includes(c.name.toLowerCase()));
+      if (chars.length === 2) {
+        const sharedStory = stories.find(s => s.id === chars[0].relatedStory && s.id === chars[1].relatedStory);
+        if (sharedStory) {
+          return comicResponse(`**${chars[0].name}** and **${chars[1].name}** both appear in **${sharedStory.title}**.\n\n${chars[0].name}: ${summarize(chars[0].description)}\n${chars[1].name}: ${summarize(chars[1].description)}\n\nTheir relationship: ${chars[0].name} is a ${chars[0].role}, ${chars[1].name} is a ${chars[1].role}.`);
+        }
+      }
+      // Timeline: what happened before/after a story
+      for (const s of stories) {
+        if (inputValue.includes(s.title.toLowerCase())) {
+          const arc = knowledgeBase.storyArcs.find(a => a.stories.includes(s.id));
+          if (arc) {
+            const idx = arc.stories.indexOf(s.id);
+            let before = idx > 0 ? stories.find(st => st.id === arc.stories[idx - 1]) : null;
+            let after = idx < arc.stories.length - 1 ? stories.find(st => st.id === arc.stories[idx + 1]) : null;
+            let msg = `**${s.title}** is part of the ${arc.name}.`;
+            if (before) msg += `\n\nBefore: **${before.title}** — ${summarize(before.summary)}`;
+            if (after) msg += `\n\nAfter: **${after.title}** — ${summarize(after.summary)}`;
+            return comicResponse(msg);
+          }
         }
       }
     }
-  }
+    return null;
+  };
 
   // --- More Comic-Style Personality ---
   function comicPersonality(text: string) {
