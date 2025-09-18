@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { ScrollArea } from '../components/ui/scroll-area';
-import { Alert, AlertDescription } from '../components/ui/alert';
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   MessageCircle, 
   Send, 
@@ -17,8 +17,8 @@ import {
   UserPlus,
   Settings
 } from 'lucide-react';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 interface ChatMessage {
   id: string;
@@ -40,22 +40,17 @@ const AnonymousChat = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [anonymousIdentity, setAnonymousIdentity] = useState<{ address: string; pseudonym: string; reputation: number } | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [onlineUsers, setOnlineUsers] = useState<AnonymousUser[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<AnonymousUser[]>([
+    { address: 'user1', pseudonym: 'ShadowTraveler#1234', reputation: 85, isOnline: true },
+    { address: 'user2', pseudonym: 'MysterySeeker#5678', reputation: 92, isOnline: true },
+    { address: 'user3', pseudonym: 'PhantomVoyager#9012', reputation: 78, isOnline: true }
+  ]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState('');
   const [newPseudonym, setNewPseudonym] = useState('');
   const [showSettings, setShowSettings] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   // Demo functions
   const initializeAnonymousChat = async () => {
@@ -68,11 +63,6 @@ const AnonymousChat = () => {
       };
       setAnonymousIdentity(identity);
       setIsConnected(true);
-      setOnlineUsers([
-        { address: 'user1', pseudonym: 'ShadowTraveler#1234', reputation: 85, isOnline: true },
-        { address: 'user2', pseudonym: 'MysterySeeker#5678', reputation: 92, isOnline: true },
-        { address: 'user3', pseudonym: 'PhantomVoyager#9012', reputation: 78, isOnline: true }
-      ]);
       setIsLoading(false);
     }, 1000);
   };
@@ -407,7 +397,6 @@ const AnonymousChat = () => {
                             <p>No messages yet. Start the conversation!</p>
                           </div>
                         )}
-                        <div ref={messagesEndRef} />
                       </div>
                     </ScrollArea>
                     
@@ -488,4 +477,3 @@ const AnonymousChat = () => {
 };
 
 export default AnonymousChat;
-
