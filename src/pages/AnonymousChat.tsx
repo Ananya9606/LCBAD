@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { ScrollArea } from '../components/ui/scroll-area';
+import { Alert, AlertDescription } from '../components/ui/alert';
 import { 
   MessageCircle, 
   Send, 
@@ -13,31 +13,36 @@ import {
   Clock, 
   Flame,
   Eye,
-  EyeOff,
   RefreshCw,
   UserPlus,
   Settings
 } from 'lucide-react';
-import { useAnonymousChat, ChatMessage, AnonymousUser } from '@/hooks/useAnonymousChat';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+
+interface ChatMessage {
+  id: string;
+  content: string;
+  sender: string;
+  timestamp: Date;
+  isEphemeral: boolean;
+  isBurned: boolean;
+}
+
+interface AnonymousUser {
+  address: string;
+  pseudonym: string;
+  reputation: number;
+  isOnline: boolean;
+}
 
 const AnonymousChat = () => {
-  const {
-    isConnected,
-    anonymousIdentity,
-    messages,
-    onlineUsers,
-    isLoading,
-    error,
-    initializeAnonymousChat,
-    sendMessage,
-    burnMessage,
-    updatePseudonym,
-    discoverOnlineUsers,
-    disconnect
-  } = useAnonymousChat();
-
+  const [isConnected, setIsConnected] = useState(false);
+  const [anonymousIdentity, setAnonymousIdentity] = useState<{ address: string; pseudonym: string; reputation: number } | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<AnonymousUser[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState('');
   const [newPseudonym, setNewPseudonym] = useState('');
@@ -52,14 +57,69 @@ const AnonymousChat = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Demo functions
+  const initializeAnonymousChat = async () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      const identity = {
+        address: 'demo_' + Math.random().toString(36).substr(2, 9),
+        pseudonym: 'AnonymousUser' + Math.floor(Math.random() * 1000),
+        reputation: Math.floor(Math.random() * 100)
+      };
+      setAnonymousIdentity(identity);
+      setIsConnected(true);
+      setOnlineUsers([
+        { address: 'user1', pseudonym: 'ShadowTraveler#1234', reputation: 85, isOnline: true },
+        { address: 'user2', pseudonym: 'MysterySeeker#5678', reputation: 92, isOnline: true },
+        { address: 'user3', pseudonym: 'PhantomVoyager#9012', reputation: 78, isOnline: true }
+      ]);
+      setIsLoading(false);
+    }, 1000);
+  };
+
+  const sendMessage = async (receiverAddress: string, content: string) => {
+    if (!anonymousIdentity) return;
+    
+    const message: ChatMessage = {
+      id: Date.now().toString(),
+      content,
+      sender: anonymousIdentity.address,
+      timestamp: new Date(),
+      isEphemeral: false,
+      isBurned: false
+    };
+    setMessages(prev => [...prev, message]);
+  };
+
+  const burnMessage = (messageId: string) => {
+    setMessages(prev => prev.map(msg => 
+      msg.id === messageId ? { ...msg, isBurned: true } : msg
+    ));
+  };
+
+  const updatePseudonym = async (newPseudonym: string) => {
+    if (!anonymousIdentity) return;
+    setAnonymousIdentity(prev => prev ? { ...prev, pseudonym: newPseudonym } : null);
+  };
+
+  const discoverOnlineUsers = async () => {
+    // Demo function - just refresh the list
+    setOnlineUsers(prev => [...prev]);
+  };
+
+  const disconnect = () => {
+    setIsConnected(false);
+    setAnonymousIdentity(null);
+    setMessages([]);
+    setOnlineUsers([]);
+    setError(null);
+  };
+
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !selectedUser) return;
 
     try {
-      await sendMessage(selectedUser, messageInput.trim(), {
-        ephemeral: false,
-        burnAfterRead: false
-      });
+      await sendMessage(selectedUser, messageInput.trim());
       setMessageInput('');
     } catch (err) {
       console.error('Failed to send message:', err);

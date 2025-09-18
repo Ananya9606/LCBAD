@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { anonymousChatClient, AnonymousIdentity, AnonymousMessage } from '@/integrations/web3/client';
-import { supabase } from '@/integrations/supabase/client';
+import { anonymousChatClient, AnonymousIdentity, AnonymousMessage } from '../integrations/web3/client';
+import { supabase } from '../integrations/supabase/client';
 
 export interface AnonymousUser {
   address: string;
