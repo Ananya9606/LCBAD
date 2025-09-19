@@ -5,7 +5,7 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react()],
-  base: process.env.NODE_ENV === 'production' ? '/LCBAD-4/' : '/',
+  base: process.env.NODE_ENV === 'production' ? '/LCBAD/' : '/',
   build: {
     outDir: "dist",
     assetsDir: "assets",

@@ -18,21 +18,27 @@ const Assistant = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 mb-8">
-            <Card className="bg-white/10 backdrop-blur-sm border-purple-500">
+            <Card className="bg-white/10 backdrop-blur-sm border-purple-500 border-2 shadow-lg shadow-purple-500/20">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-purple-300">
                   <Bot className="h-5 w-5" />
-                  How to Use
+                  Widget Interface
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-300 mb-4">
-                  Look for the floating chat button in the bottom-right corner of any page. 
-                  Click it to start chatting with Assistant Mr. Effort!
+                  Assistant Mr. Effort is now available as a <strong className="text-purple-300">floating widget</strong> in the bottom-right corner of every page. 
+                  Click the chat icon to open the assistant and start your conversation!
                 </p>
-                <div className="flex items-center gap-2 text-purple-300">
-                  <MessageCircle className="h-4 w-4" />
-                  <span className="text-sm">Always available on every page</span>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-purple-300">
+                    <MessageCircle className="h-4 w-4" />
+                    <span className="text-sm">Always accessible from any page</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-purple-300">
+                    <Zap className="h-4 w-4" />
+                    <span className="text-sm">Instant responses with context memory</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -106,10 +112,19 @@ const Assistant = () => {
           </Card>
 
           <div className="text-center mt-8">
-            <p className="text-gray-400">
-              The Assistant Mr. Effort is powered by advanced AI and has deep knowledge of the entire Life Could Be A Dream universe. 
-              Ask anything and get instant, accurate answers!
-            </p>
+            <Card className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 backdrop-blur-sm border-purple-400 border-2">
+              <CardContent className="p-6">
+                <h3 className="text-2xl font-bold text-white mb-4">Ready to Start?</h3>
+                <p className="text-gray-300 mb-6">
+                  The Assistant Mr. Effort is powered by advanced AI and has deep knowledge of the entire Life Could Be A Dream universe. 
+                  Look for the floating chat widget in the bottom-right corner and start your conversation now!
+                </p>
+                <div className="flex items-center justify-center gap-2 text-purple-300">
+                  <MessageCircle className="h-5 w-5 animate-pulse" />
+                  <span className="text-lg font-semibold">Click the widget to begin! →</span>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>

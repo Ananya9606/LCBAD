@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { Book, Users, User, LogOut, Bot } from "lucide-react";
+import { Book, Users, User, LogOut, Bot, Shield } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -82,6 +82,13 @@ const Navbar: React.FC = () => {
             >
               <Bot className="mr-1 h-4 w-4" />
               Assistant
+            </Link>
+            <Link 
+              to="/anonymous-chat" 
+              className={`flex items-center ${isActive('/anonymous-chat')}`}
+            >
+              <Shield className="mr-1 h-4 w-4" />
+              Anonymous Chat
             </Link>
           </div>
           
