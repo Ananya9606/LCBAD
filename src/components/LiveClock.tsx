@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Clock } from "lucide-react";
 
 interface LiveClockProps {
   showSeconds?: boolean;
@@ -59,7 +58,20 @@ const LiveClock: React.FC<LiveClockProps> = ({
 
   return (
     <div className={`flex items-center space-x-2 ${getVariantStyles()} ${className}`}>
-      <Clock className="h-4 w-4 text-comic-softBlue" />
+      {/* Inline clock icon to avoid external icon runtime issues */}
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-4 w-4 text-comic-softBlue"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+      </svg>
       <div className="flex flex-col">
         <span className="font-mono">{formatTime(currentTime)}</span>
         {showDate && (
