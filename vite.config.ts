@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react()],
   base: process.env.NODE_ENV === 'production' ? '/LCBAD/' : '/',
   build: {
-    outDir: "dist",
+    outDir: "docs",
     assetsDir: "assets",
   },
   resolve: {
