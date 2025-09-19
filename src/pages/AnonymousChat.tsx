@@ -10,7 +10,6 @@ import {
   Send, 
   Users, 
   Shield, 
-  Clock, 
   Flame,
   Eye,
   RefreshCw,
@@ -27,6 +26,8 @@ interface ChatMessage {
   timestamp: Date;
   isEphemeral: boolean;
   isBurned: boolean;
+  receiver?: string;
+  expiresAt?: Date;
 }
 
 interface AnonymousUser {
@@ -145,7 +146,21 @@ const AnonymousChat = () => {
 
   const getMessageStatusIcon = (message: ChatMessage) => {
     if (message.isBurned) return <Flame className="h-3 w-3 text-red-500" />;
-    if (message.isEphemeral) return <Clock className="h-3 w-3 text-yellow-500" />;
+    if (message.isEphemeral) return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-3 w-3 text-yellow-500"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <polyline points="12 6 12 12 16 14" />
+      </svg>
+    );
     return <Eye className="h-3 w-3 text-green-500" />;
   };
 

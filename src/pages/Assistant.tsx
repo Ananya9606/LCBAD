@@ -2,7 +2,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
-import { Bot, MessageCircle, BookOpen, Users, Clock, Zap } from "lucide-react";
+import { Bot, MessageCircle, BookOpen, Users, Zap } from "lucide-react";
 
 const Assistant = () => {
   return (
@@ -61,7 +61,20 @@ const Assistant = () => {
                     <span>Character profiles and relationships</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-purple-300" />
+                    {/* Inline clock icon to avoid runtime issues */}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="h-4 w-4 text-purple-300"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
                     <span>Timeline and universe lore</span>
                   </div>
                 </div>
