@@ -5,7 +5,8 @@ import path from "path";
 
 export default defineConfig({
   plugins: [react()],
-  base: process.env.NODE_ENV === 'production' ? '/LCBAD/' : '/',
+  // Use relative base in production so assets resolve under docs/ on GitHub Pages
+  base: process.env.NODE_ENV === 'production' ? './' : '/',
   build: {
     outDir: "docs",
     assetsDir: "assets",
