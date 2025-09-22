@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +14,9 @@ import {
   Eye,
   RefreshCw,
   UserPlus,
-  Settings
+  Settings,
+  Sparkles,
+  Search
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -52,6 +54,8 @@ const AnonymousChat = () => {
   const [messageInput, setMessageInput] = useState('');
   const [newPseudonym, setNewPseudonym] = useState('');
   const [showSettings, setShowSettings] = useState(false);
+  const [userSearch, setUserSearch] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
 
   // Demo functions
   const initializeAnonymousChat = async () => {
@@ -77,7 +81,8 @@ const AnonymousChat = () => {
       sender: anonymousIdentity.address,
       timestamp: new Date(),
       isEphemeral: false,
-      isBurned: false
+      isBurned: false,
+      receiver: receiverAddress
     };
     setMessages(prev => [...prev, message]);
   };
@@ -112,6 +117,7 @@ const AnonymousChat = () => {
     try {
       await sendMessage(selectedUser, messageInput.trim());
       setMessageInput('');
+      setIsTyping(false);
     } catch (err) {
       console.error('Failed to send message:', err);
     }
@@ -123,6 +129,23 @@ const AnonymousChat = () => {
       handleSendMessage();
     }
   };
+
+  const filteredUsers = useMemo(() => {
+    const q = userSearch.trim().toLowerCase();
+    if (!q) return onlineUsers;
+    return onlineUsers.filter(u =>
+      u.pseudonym.toLowerCase().includes(q) ||
+      u.address.toLowerCase().includes(q)
+    );
+  }, [onlineUsers, userSearch]);
+
+  const currentThread = useMemo(() => {
+    if (!selectedUser || !anonymousIdentity) return [] as ChatMessage[];
+    return messages.filter(msg =>
+      (msg.sender === selectedUser && msg.receiver === anonymousIdentity.address) ||
+      (msg.sender === anonymousIdentity.address && msg.receiver === selectedUser)
+    );
+  }, [messages, selectedUser, anonymousIdentity]);
 
   const handleUpdatePseudonym = async () => {
     if (!newPseudonym.trim()) return;
@@ -165,28 +188,31 @@ const AnonymousChat = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900">
       <Navbar />
       
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white mb-4 flex items-center justify-center gap-3">
-              <Shield className="h-10 w-10 text-purple-400" />
+          <div className="relative overflow-hidden text-center mb-8 rounded-2xl p-8 bg-gradient-to-r from-purple-600/20 via-pink-600/10 to-indigo-600/20 border border-purple-500/30">
+            <div className="absolute -top-10 -left-10 h-40 w-40 rounded-full bg-purple-500/20 blur-3xl" />
+            <div className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-pink-500/20 blur-3xl" />
+            <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-3 flex items-center justify-center gap-3">
+              <Shield className="h-10 w-10 text-purple-300 drop-shadow" />
               Anonymous Chat
+              <Sparkles className="h-6 w-6 text-pink-300" />
             </h1>
-            <p className="text-xl text-gray-300">
-              Secure, private conversations without revealing your identity
+            <p className="text-base md:text-lg text-gray-300 max-w-3xl mx-auto">
+              Secure, private conversations — ephemeral by choice, memorable by design.
             </p>
           </div>
 
           {/* Connection Status */}
           {!isConnected && (
-            <Card className="bg-white/10 backdrop-blur-sm border-purple-500 mb-6">
+            <Card className="bg-white/10 backdrop-blur-sm border-purple-500/40 mb-6 shadow-xl">
               <CardContent className="p-6 text-center">
                 <div className="flex flex-col items-center gap-4">
-                  <Shield className="h-12 w-12 text-purple-400" />
+                  <Shield className="h-12 w-12 text-purple-300" />
                   <div>
                     <h3 className="text-xl font-semibold text-white mb-2">
                       Start Anonymous Chat
@@ -197,7 +223,7 @@ const AnonymousChat = () => {
                     <Button
                       onClick={initializeAnonymousChat}
                       disabled={isLoading}
-                      className="bg-purple-600 hover:bg-purple-700"
+                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-lg"
                     >
                       {isLoading ? (
                         <>
@@ -219,7 +245,7 @@ const AnonymousChat = () => {
 
           {/* Error Display */}
           {error && (
-            <Alert className="mb-6 border-red-500 bg-red-500/10">
+            <Alert className="mb-6 border-red-500/50 bg-red-500/10">
               <AlertDescription className="text-red-300">
                 {error}
               </AlertDescription>
@@ -231,10 +257,10 @@ const AnonymousChat = () => {
             <div className="grid lg:grid-cols-3 gap-6">
               {/* Online Users Sidebar */}
               <div className="lg:col-span-1">
-                <Card className="bg-white/10 backdrop-blur-sm border-purple-500">
+                <Card className="bg-white/10 backdrop-blur-sm border-purple-500/40">
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="flex items-center gap-2 text-purple-300">
+                      <CardTitle className="flex items-center gap-2 text-purple-200">
                         <Users className="h-5 w-5" />
                         Online Users ({onlineUsers.length})
                       </CardTitle>
@@ -242,22 +268,33 @@ const AnonymousChat = () => {
                         variant="ghost"
                         size="sm"
                         onClick={discoverOnlineUsers}
-                        className="text-purple-300 hover:bg-purple-500/20"
+                        className="text-purple-200 hover:bg-purple-500/20"
                       >
                         <RefreshCw className="h-4 w-4" />
                       </Button>
                     </div>
                   </CardHeader>
                   <CardContent>
+                    <div className="mb-3">
+                      <div className="relative">
+                        <Input
+                          value={userSearch}
+                          onChange={(e) => setUserSearch(e.target.value)}
+                          placeholder="Search users or addresses..."
+                          className="pl-9 bg-white/5 border-purple-400/40 text-white placeholder:text-gray-400"
+                        />
+                        <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      </div>
+                    </div>
                     <ScrollArea className="h-64">
                       <div className="space-y-2">
-                        {onlineUsers.map((user) => (
+                        {filteredUsers.map((user) => (
                           <div
                             key={user.address}
-                            className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                            className={`p-3 rounded-xl cursor-pointer transition-all border ${
                               selectedUser === user.address
-                                ? 'bg-purple-500/30 border border-purple-400'
-                                : 'bg-white/5 hover:bg-white/10'
+                                ? 'bg-purple-500/20 border-purple-400 shadow-md'
+                                : 'bg-white/5 border-transparent hover:bg-white/10'
                             }`}
                             onClick={() => setSelectedUser(user.address)}
                           >
@@ -277,7 +314,7 @@ const AnonymousChat = () => {
                             </div>
                           </div>
                         ))}
-                        {onlineUsers.length === 0 && (
+                        {filteredUsers.length === 0 && (
                           <p className="text-gray-400 text-center py-4">
                             No other users online
                           </p>
@@ -288,9 +325,9 @@ const AnonymousChat = () => {
                 </Card>
 
                 {/* Current Identity */}
-                <Card className="bg-white/10 backdrop-blur-sm border-purple-500 mt-4">
+                <Card className="bg-white/10 backdrop-blur-sm border-purple-500/40 mt-4">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-purple-300">
+                    <CardTitle className="flex items-center gap-2 text-purple-200">
                       <Shield className="h-5 w-5" />
                       Your Identity
                     </CardTitle>
@@ -309,7 +346,7 @@ const AnonymousChat = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => setShowSettings(!showSettings)}
-                        className="w-full border-purple-400 text-purple-300 hover:bg-purple-500/20"
+                        className="w-full border-purple-400/60 text-purple-200 hover:bg-purple-500/20"
                       >
                         <Settings className="h-4 w-4 mr-2" />
                         Settings
@@ -321,19 +358,20 @@ const AnonymousChat = () => {
 
               {/* Chat Area */}
               <div className="lg:col-span-2">
-                <Card className="bg-white/10 backdrop-blur-sm border-purple-500 h-[600px] flex flex-col">
+                <Card className="bg-white/10 backdrop-blur-sm border-purple-500/40 h-[640px] flex flex-col shadow-xl">
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-purple-300">
+                      <CardTitle className="text-purple-200">
                         {selectedUser ? (
                           <div className="flex items-center gap-2">
                             <MessageCircle className="h-5 w-5" />
-                            Chat with {onlineUsers.find(u => u.address === selectedUser)?.pseudonym}
+                            <span className="text-white">Chat with</span>
+                            <span className="text-purple-300 font-semibold">{onlineUsers.find(u => u.address === selectedUser)?.pseudonym}</span>
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
                             <MessageCircle className="h-5 w-5" />
-                            Select a user to start chatting
+                            <span>Select a user to start chatting</span>
                           </div>
                         )}
                       </CardTitle>
@@ -352,64 +390,69 @@ const AnonymousChat = () => {
                     {/* Messages */}
                     <ScrollArea className="flex-grow p-4">
                       <div className="space-y-3">
-                        {messages
-                          .filter(msg => 
-                            (msg.sender === selectedUser && msg.receiver === anonymousIdentity.address) ||
-                            (msg.sender === anonymousIdentity.address && msg.receiver === selectedUser)
-                          )
-                          .map((message) => (
+                        {currentThread.map((message) => (
+                          <div
+                            key={message.id}
+                            className={`flex ${message.sender === anonymousIdentity.address ? 'justify-end' : 'justify-start'}`}
+                          >
                             <div
-                              key={message.id}
-                              className={`flex ${message.sender === anonymousIdentity.address ? 'justify-end' : 'justify-start'}`}
+                              className={`max-w-[80%] p-3 rounded-2xl shadow-sm border ${
+                                message.sender === anonymousIdentity.address
+                                  ? 'bg-gradient-to-br from-purple-600 to-indigo-600 text-white border-purple-400/40'
+                                  : 'bg-white text-gray-800 border-gray-200'
+                              }`}
                             >
-                              <div
-                                className={`max-w-[80%] p-3 rounded-lg ${
-                                  message.sender === anonymousIdentity.address
-                                    ? 'bg-purple-600 text-white'
-                                    : 'bg-gray-100 text-gray-800'
-                                }`}
-                              >
-                                <div className="flex items-center gap-2 mb-1">
-                                  {getMessageStatusIcon(message)}
-                                  <span className="text-xs opacity-70">
-                                    {message.sender === anonymousIdentity.address
-                                      ? anonymousIdentity.pseudonym
-                                      : onlineUsers.find(u => u.address === message.sender)?.pseudonym || 'Unknown'
-                                    }
-                                  </span>
-                                  <Badge variant="secondary" className="text-xs">
-                                    {formatTimestamp(message.timestamp)}
-                                  </Badge>
+                              <div className="flex items-center gap-2 mb-1">
+                                {getMessageStatusIcon(message)}
+                                <span className={`text-xs ${message.sender === anonymousIdentity.address ? 'opacity-80' : 'text-gray-500'}`}>
+                                  {message.sender === anonymousIdentity.address
+                                    ? anonymousIdentity.pseudonym
+                                    : onlineUsers.find(u => u.address === message.sender)?.pseudonym || 'Unknown'}
+                                </span>
+                                <Badge variant="secondary" className="text-[10px] opacity-80">
+                                  {formatTimestamp(message.timestamp)}
+                                </Badge>
+                              </div>
+                              <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                                {message.content}
+                              </div>
+                              {message.isEphemeral && message.expiresAt && (
+                                <div className="text-xs opacity-70 mt-1">
+                                  Expires: {formatTimestamp(message.expiresAt)}
                                 </div>
-                                <div className="whitespace-pre-wrap text-sm">
-                                  {message.content}
-                                </div>
-                                {message.isEphemeral && message.expiresAt && (
-                                  <div className="text-xs opacity-70 mt-1">
-                                    Expires: {formatTimestamp(message.expiresAt)}
-                                  </div>
-                                )}
-                                {!message.isBurned && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => burnMessage(message.id)}
-                                    className="text-xs p-1 h-auto mt-1"
-                                  >
-                                    <Flame className="h-3 w-3 mr-1" />
-                                    Burn
-                                  </Button>
-                                )}
+                              )}
+                              {!message.isBurned && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => burnMessage(message.id)}
+                                  className={`text-xs p-1 h-auto mt-1 ${message.sender === anonymousIdentity.address ? 'text-white/80 hover:text-white' : 'text-gray-600 hover:text-gray-800'}`}
+                                >
+                                  <Flame className="h-3 w-3 mr-1" />
+                                  Burn
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        {selectedUser && currentThread.length === 0 && (
+                          <div className="text-center text-gray-400 py-10">
+                            <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                            <p className="text-sm">No messages yet. Say hello and start the conversation!</p>
+                          </div>
+                        )}
+                        {isTyping && (
+                          <div className="flex justify-start">
+                            <div className="max-w-[60%] p-3 rounded-2xl bg-white text-gray-800 border border-gray-200">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-500">Typing</span>
+                                <span className="inline-flex gap-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce [animation-delay:0ms]"></span>
+                                  <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce [animation-delay:150ms]"></span>
+                                  <span className="w-1.5 h-1.5 rounded-full bg-gray-400 animate-bounce [animation-delay:300ms]"></span>
+                                </span>
                               </div>
                             </div>
-                          ))}
-                        {selectedUser && messages.filter(msg => 
-                          (msg.sender === selectedUser && msg.receiver === anonymousIdentity.address) ||
-                          (msg.sender === anonymousIdentity.address && msg.receiver === selectedUser)
-                        ).length === 0 && (
-                          <div className="text-center text-gray-400 py-8">
-                            <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                            <p>No messages yet. Start the conversation!</p>
                           </div>
                         )}
                       </div>
@@ -417,23 +460,24 @@ const AnonymousChat = () => {
                     
                     {/* Message Input */}
                     {selectedUser && (
-                      <div className="p-4 border-t border-purple-500/30">
-                        <div className="flex gap-2">
+                      <div className="p-4 border-t border-purple-500/30 bg-gradient-to-b from-transparent to-black/10 rounded-b-2xl">
+                        <div className="flex gap-2 items-end">
                           <Input
                             value={messageInput}
-                            onChange={(e) => setMessageInput(e.target.value)}
+                            onChange={(e) => { setMessageInput(e.target.value); setIsTyping(e.target.value.trim().length > 0); }}
                             onKeyPress={handleKeyPress}
                             placeholder="Type your message..."
-                            className="flex-1 bg-white/10 border-purple-400 text-white placeholder:text-gray-400"
+                            className="flex-1 bg-white/10 border-purple-400/60 text-white placeholder:text-gray-400 rounded-xl"
                           />
                           <Button
                             onClick={handleSendMessage}
                             disabled={!messageInput.trim()}
-                            className="bg-purple-600 hover:bg-purple-700"
+                            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-lg"
                           >
                             <Send className="h-4 w-4" />
                           </Button>
                         </div>
+                        <p className="text-[11px] text-gray-400 mt-2 pl-1">Press Enter to send</p>
                       </div>
                     )}
                   </CardContent>
@@ -445,9 +489,9 @@ const AnonymousChat = () => {
           {/* Settings Modal */}
           {showSettings && (
             <Card className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <Card className="bg-white/10 backdrop-blur-sm border-purple-500 w-96">
+              <Card className="bg-white/10 backdrop-blur-sm border-purple-500/40 w-96 shadow-2xl">
                 <CardHeader>
-                  <CardTitle className="text-purple-300">Update Pseudonym</CardTitle>
+                  <CardTitle className="text-purple-200">Update Pseudonym</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -459,21 +503,21 @@ const AnonymousChat = () => {
                         value={newPseudonym}
                         onChange={(e) => setNewPseudonym(e.target.value)}
                         placeholder="Enter new pseudonym..."
-                        className="bg-white/10 border-purple-400 text-white placeholder:text-gray-400"
+                        className="bg-white/10 border-purple-400/60 text-white placeholder:text-gray-400"
                       />
                     </div>
                     <div className="flex gap-2">
                       <Button
                         onClick={handleUpdatePseudonym}
                         disabled={!newPseudonym.trim()}
-                        className="flex-1 bg-purple-600 hover:bg-purple-700"
+                        className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
                       >
                         Update
                       </Button>
                       <Button
                         variant="outline"
                         onClick={() => setShowSettings(false)}
-                        className="border-purple-400 text-purple-300 hover:bg-purple-500/20"
+                        className="border-purple-400/60 text-purple-200 hover:bg-purple-500/20"
                       >
                         Cancel
                       </Button>
